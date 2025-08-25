@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.library.management.mapper.BorrowRecordMapper">
+    
+    <!-- 结果映射 -->
+    <resultMap id="BaseResultMap" type="com.library.management.entity.BorrowRecord">
+        <id column="id" property="id" jdbcType="BIGINT"/>
+        <result column="book_id" property="bookId" jdbcType="BIGINT"/>
+        <result column="user_id" property="userId" jdbcType="BIGINT"/>
+        <result column="borrow_time" property="borrowTime" jdbcType="TIMESTAMP"/>
+        <result column="due_time" property="dueTime" jdbcType="TIMESTAMP"/>
+        <result column="return_time" property="returnTime" jdbcType="TIMESTAMP"/>
+        <result column="status" property="status" jdbcType="INTEGER"/>
+        <result column="remark" property="remark" jdbcType="VARCHAR"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
+        <result column="update_time" property="updateTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+    
+    <!-- 基础字段 -->
+    <sql id="Base_Column_List">
+        id, book_id, user_id, borrow_time, due_time, return_time, status, remark, create_time, update_time
+    </sql>
+    
+    <!-- 新增借阅记录 -->
+    <insert id="insert" parameterType="com.library.management.entity.BorrowRecord" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO borrow_record (book_id, user_id, borrow_time, due_time, status, remark, create_time, update_time)
+        VALUES (#{bookId}, #{userId}, #{borrowTime}, #{dueTime}, #{status}, #{remark}, NOW(), NOW())
+    </insert>
+    
+    <!-- 根据ID更新借阅记录 -->
+    <update id="updateById" parameterType="com.library.management.entity.BorrowRecord">
+        UPDATE borrow_record 
+        SET book_id = #{bookId}, user_id = #{userId}, borrow_time = #{borrowTime}, 
+            due_time = #{dueTime}, return_time = #{returnTime}, status = #{status}, 
+            remark = #{remark}, update_time = NOW()
+        WHERE id = #{id}
+    </update>
+    
+    <!-- 根据ID查询借阅记录 -->
+    <select id="selectById" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM borrow_record 
+        WHERE id = #{id}
+    </select>
+    
+    <!-- 根据用户ID查询借阅记录 -->
+    <select id="selectByUserId" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM borrow_record 
+        WHERE user_id = #{userId}
+        ORDER BY create_time DESC
+    </select>
+    
+    <!-- 根据图书ID查询借阅记录 -->
+    <select id="selectByBookId" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM borrow_record 
+        WHERE book_id = #{bookId}
+        ORDER BY create_time DESC
+    </select>
+    
+    <!-- 查询所有借阅记录 -->
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM borrow_record 
+        ORDER BY create_time DESC
+    </select>
+    
+    <!-- 分页查询借阅记录 -->
+    <select id="selectByPage" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM borrow_record 
+        ORDER BY create_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+    
+    <!-- 根据状态查询借阅记录 -->
+    <select id="selectByStatus" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM borrow_record 
+        WHERE status = #{status}
+        ORDER BY create_time DESC
+    </select>
+    
+    <!-- 查询借阅记录总数 -->
+    <select id="selectCount" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM borrow_record
+    </select>
+    
+    <!-- 查询逾期记录 -->
+    <select id="selectOverdueRecords" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM borrow_record 
+        WHERE status = 0 AND due_time <![CDATA[<]]> NOW()
+        ORDER BY due_time ASC
+    </select>
+    
+    <!-- 更新借阅状态 -->
+    <update id="updateStatus">
+        UPDATE borrow_record 
+        SET status = #{status}, update_time = NOW()
+        WHERE id = #{id}
+    </update>
+    
+</mapper>

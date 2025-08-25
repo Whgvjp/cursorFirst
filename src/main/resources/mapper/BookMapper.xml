@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.library.management.mapper.BookMapper">
+    
+    <!-- 结果映射 -->
+    <resultMap id="BaseResultMap" type="com.library.management.entity.Book">
+        <id column="id" property="id" jdbcType="BIGINT"/>
+        <result column="name" property="name" jdbcType="VARCHAR"/>
+        <result column="author" property="author" jdbcType="VARCHAR"/>
+        <result column="isbn" property="isbn" jdbcType="VARCHAR"/>
+        <result column="publisher" property="publisher" jdbcType="VARCHAR"/>
+        <result column="publish_date" property="publishDate" jdbcType="TIMESTAMP"/>
+        <result column="category" property="category" jdbcType="VARCHAR"/>
+        <result column="status" property="status" jdbcType="INTEGER"/>
+        <result column="description" property="description" jdbcType="VARCHAR"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
+        <result column="update_time" property="updateTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+    
+    <!-- 基础字段 -->
+    <sql id="Base_Column_List">
+        id, name, author, isbn, publisher, publish_date, category, status, description, 
+        create_time, update_time
+    </sql>
+    
+    <!-- 新增图书 -->
+    <insert id="insert" parameterType="com.library.management.entity.Book" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO book (name, author, isbn, publisher, publish_date, category, status, description, create_time, update_time)
+        VALUES (#{name}, #{author}, #{isbn}, #{publisher}, #{publishDate}, #{category}, #{status}, #{description}, 
+                NOW(), NOW())
+    </insert>
+    
+    <!-- 根据ID更新图书 -->
+    <update id="updateById" parameterType="com.library.management.entity.Book">
+        UPDATE book 
+        SET name = #{name}, author = #{author}, isbn = #{isbn}, publisher = #{publisher}, 
+            publish_date = #{publishDate}, category = #{category}, description = #{description}, 
+            update_time = NOW()
+        WHERE id = #{id}
+    </update>
+    
+    <!-- 根据ID删除图书 -->
+    <delete id="deleteById" parameterType="java.lang.Long">
+        DELETE FROM book WHERE id = #{id}
+    </delete>
+    
+    <!-- 根据ID查询图书 -->
+    <select id="selectById" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM book 
+        WHERE id = #{id}
+    </select>
+    
+    <!-- 根据ISBN查询图书 -->
+    <select id="selectByIsbn" parameterType="java.lang.String" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM book 
+        WHERE isbn = #{isbn}
+    </select>
+    
+    <!-- 查询所有图书 -->
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM book 
+        ORDER BY create_time DESC
+    </select>
+    
+    <!-- 分页查询图书 -->
+    <select id="selectByPage" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM book 
+        ORDER BY create_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+    
+    <!-- 根据条件查询图书 -->
+    <select id="selectByCondition" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM book 
+        <where>
+            <if test="name != null and name != ''">
+                AND name LIKE CONCAT('%', #{name}, '%')
+            </if>
+            <if test="author != null and author != ''">
+                AND author LIKE CONCAT('%', #{author}, '%')
+            </if>
+            <if test="category != null and category != ''">
+                AND category = #{category}
+            </if>
+        </where>
+        ORDER BY create_time DESC
+    </select>
+    
+    <!-- 查询图书总数 -->
+    <select id="selectCount" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM book
+    </select>
+    
+    <!-- 更新图书状态 -->
+    <update id="updateStatus">
+        UPDATE book 
+        SET status = #{status}, update_time = NOW()
+        WHERE id = #{id}
+    </update>
+    
+</mapper>

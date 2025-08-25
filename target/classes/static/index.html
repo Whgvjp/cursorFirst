@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>图书借阅管理系统</title>
+  <link rel="stylesheet" href="/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/vue@2.7.16/dist/vue.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios@1.7.2/dist/axios.min.js"></script>
+</head>
+<body>
+  <div id="app">
+    <header>
+      <h1>图书借阅管理系统</h1>
+      <nav>
+        <button :class="{active: tab==='books'}" @click="tab='books'">图书</button>
+        <button :class="{active: tab==='borrow'}" @click="tab='borrow'">借阅/归还</button>
+      </nav>
+    </header>
+
+    <main>
+      <section v-if="tab==='books'">
+        <div class="card">
+          <h2>搜索图书</h2>
+          <div class="row">
+            <input v-model.trim="query.name" placeholder="按名称" />
+            <input v-model.trim="query.author" placeholder="按作者" />
+            <input v-model.trim="query.category" placeholder="按分类" />
+            <button @click="searchBooks">搜索</button>
+            <button class="secondary" @click="loadAll">重置</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>新增图书</h2>
+          <div class="grid">
+            <input v-model.trim="newBook.name" placeholder="名称" />
+            <input v-model.trim="newBook.author" placeholder="作者" />
+            <input v-model.trim="newBook.isbn" placeholder="ISBN" />
+            <input v-model.trim="newBook.publisher" placeholder="出版社" />
+            <input type="datetime-local" v-model="newBook.publishDate" />
+            <input v-model.trim="newBook.category" placeholder="分类" />
+          </div>
+          <textarea v-model.trim="newBook.description" placeholder="简介"></textarea>
+          <button @click="addBook">提交</button>
+        </div>
+
+        <div class="card">
+          <h2>图书列表 <small>（共 {{ books.length }} 条）</small></h2>
+          <div class="table">
+            <div class="thead">
+              <div>编号</div>
+              <div>名称</div>
+              <div>作者</div>
+              <div>ISBN</div>
+              <div>分类</div>
+              <div>状态</div>
+              <div>操作</div>
+            </div>
+            <div class="tbody">
+              <div class="tr" v-for="b in books" :key="b.id">
+                <div>{{ b.id }}</div>
+                <div>{{ b.name }}</div>
+                <div>{{ b.author }}</div>
+                <div>{{ b.isbn }}</div>
+                <div>{{ b.category }}</div>
+                <div>
+                  <span :class="['badge', statusClass(b.status)]">{{ statusText(b.status) }}</span>
+                </div>
+                <div class="actions">
+                  <button class="danger" @click="removeBook(b.id)" :disabled="b.status===1">删除</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section v-if="tab==='borrow'">
+        <div class="card">
+          <h2>借阅图书</h2>
+          <div class="grid">
+            <input v-model.number="borrow.bookId" placeholder="图书ID" type="number" />
+            <input v-model.number="borrow.userId" placeholder="用户ID" type="number" />
+            <input v-model.number="borrow.borrowDays" placeholder="借阅天数" type="number" />
+            <input v-model.trim="borrow.remark" placeholder="备注" />
+          </div>
+          <button @click="doBorrow">借阅</button>
+        </div>
+
+        <div class="card">
+          <h2>归还/续借</h2>
+          <div class="row">
+            <input v-model.number="action.borrowId" placeholder="借阅记录ID" type="number" />
+            <button @click="doReturn">归还</button>
+            <input v-model.number="action.days" placeholder="续借天数" type="number" />
+            <button @click="doRenew">续借</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>逾期记录</h2>
+          <button class="secondary" @click="loadOverdue">刷新</button>
+          <ul class="list">
+            <li v-for="r in overdue" :key="r.id">
+              #{{ r.id }} - 图书ID: {{ r.bookId }} - 用户ID: {{ r.userId }} - 应还: {{ r.dueTime }}
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <div v-if="toast.show" class="toast" :class="toast.type">{{ toast.message }}</div>
+    </main>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>
